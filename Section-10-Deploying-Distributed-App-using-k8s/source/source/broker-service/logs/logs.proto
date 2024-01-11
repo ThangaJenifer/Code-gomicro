@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package logs;
+
+option go_package = "/logs";
+
+//neded to describe kinds of information will be passed around
+
+//This Log message is used to send some information to logger microservice
+message Log {
+    string name = 1;
+    string data = 2;
+}
+
+//This is the one passed around 
+message LogRequest {
+    Log logEntry = 1;
+}
+//This will send the response back which contains result
+message LogResponse {
+    string result = 1;
+}
+//Last thing here is we need to define the services
+//we need to mention the name of func where this GRPC should work upon, we will create this function now
+//WriteLog takes LogRequest and returns LogResponse
+service LogService {
+    rpc WriteLog(LogRequest) returns (LogResponse);
+}
