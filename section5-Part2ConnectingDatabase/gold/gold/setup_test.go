@@ -1,21 +1,27 @@
 package main
 
 import (
+	"bytes"
+	"goldwatcher/repository"
+	"io"
 	"net/http"
 	"os"
 	"testing"
+
+	"fyne.io/fyne/v2/test"
 )
 
-// Create a var testApp type of Config
 var testApp Config
 
-// Inside TestMain we will setup things want to be in place before the actual tests are run
 func TestMain(m *testing.M) {
-	//os.Exit(m.Run()) this statement will run our tests
+	a := test.NewApp()
+	testApp.App = a
+	testApp.MainWindow = a.NewWindow("")
+	testApp.HTTPClient = client
+	testApp.DB = repository.NewTestRepository()
 	os.Exit(m.Run())
 }
 
-// get the json from website and copy it to create var jsonToReturn
 var jsonToReturn = `
 {
 	"ts": 1654782060772,
@@ -37,17 +43,22 @@ var jsonToReturn = `
   }
 `
 
-// Create a type RoundTripFunc which has func with parameter request and returns pointer to *http.Response
 type RoundTripFunc func(req *http.Request) *http.Response
 
-// Method of RoundTripFunc type RoundTrip takes request and gives out response and error
 func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req), nil
 }
 
-// Constructor function which takes RoundTripFunc variable and gives back http.client
 func NewTestClient(fn RoundTripFunc) *http.Client {
 	return &http.Client{
 		Transport: fn,
 	}
 }
+
+var client = NewTestClient(func(req *http.Request) *http.Response {
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(bytes.NewBufferString(jsonToReturn)),
+		Header:     make(http.Header),
+	}
+})
